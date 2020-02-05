@@ -3,15 +3,12 @@ package com.nesoinode.notes.view
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.provider.ContactsContract
-import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,11 +18,12 @@ import com.nesoinode.notes.model.Note
 import com.nesoinode.notes.model.NoteAdapter
 import com.nesoinode.notes.viewmodel.NoteViewModel
 
-class MainActivity() : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
     private lateinit var noteViewModel: NoteViewModel
 
     companion object { // const values for activity request codes
-        public const val ADD_NOTE_REQUEST = 1
+        const val ADD_NOTE_REQUEST = 1
+        const val EDIT_NOTE_REQUEST = 2
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +32,7 @@ class MainActivity() : AppCompatActivity() {
 
         val floatingActionButton: FloatingActionButton = findViewById(R.id.addNoteFAB)
         floatingActionButton.setOnClickListener {
-            val intent = Intent(this, AddNoteActivity::class.java)
+            val intent = Intent(this, AddEditNoteActivity::class.java)
             startActivityForResult(intent, ADD_NOTE_REQUEST)
         }
 
@@ -46,8 +44,7 @@ class MainActivity() : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         // Specify the activity's viewModel class
-        noteViewModel = ViewModelProviders.of(this)
-            .get(NoteViewModel::class.java) // Bind the NoteViewModel class to the lifecycle of this activity
+        noteViewModel = ViewModelProvider(this).get(NoteViewModel::class.java) // Bind the NoteViewModel class to the lifecycle of this activity
         // Observe the LiveData present in the NoteViewModel instance
         noteViewModel.getAllNotes()
             .observe(this, // set the lifecycle owner & the observer for the LiveData returned by the NoteViewModel class
@@ -76,22 +73,51 @@ class MainActivity() : AppCompatActivity() {
                 Toast.makeText(this@MainActivity,"Note deleted",Toast.LENGTH_SHORT).show()
             }
         }).attachToRecyclerView(recyclerView)
+
+        // Implement the adapter's onItemClickListener interface
+        adapter.setOnItemClickListener(object:NoteAdapter.OnItemClickListener {
+            override fun onItemClick(note: Note) {
+                val intent = Intent(this@MainActivity,AddEditNoteActivity::class.java)
+                intent.putExtra(AddEditNoteActivity.EXTRA_TITLE,note.title)
+                intent.putExtra(AddEditNoteActivity.EXTRA_DESCRIPTION,note.description)
+                intent.putExtra(AddEditNoteActivity.EXTRA_PRIORITY,note.priority)
+                intent.putExtra(AddEditNoteActivity.EXTRA_ID,note.id)
+                startActivityForResult(intent, EDIT_NOTE_REQUEST)
+            }
+        })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // If everything went right in the AddNoteActivity
+        // Result code was OK and the user requested to Add a new Note
         if (requestCode == ADD_NOTE_REQUEST && resultCode == Activity.RESULT_OK) {
             // Get the data from the Intent Extras
-            val title = data!!.getStringExtra(AddNoteActivity.EXTRA_TITLE)
-            val description = data.getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION)
-            val priority = data.getIntExtra(AddNoteActivity.EXTRA_PRIORITY, 1)
+            val title = data!!.getStringExtra(AddEditNoteActivity.EXTRA_TITLE)
+            val description = data.getStringExtra(AddEditNoteActivity.EXTRA_DESCRIPTION)
+            val priority = data.getIntExtra(AddEditNoteActivity.EXTRA_PRIORITY, 1)
 
-            val note =
-                Note(title!!, description!!, priority) // create the new Note object using the data
+            val note = Note(title!!, description!!, priority) // create the new Note object using the data
             noteViewModel.insert(note) // insert the object to the database
             Toast.makeText(this, "Note added successfully", Toast.LENGTH_SHORT).show()
-        } else { // e.g. when the user used the back button to leave the AddNoteActivity
+        } else if (requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_OK) { // result code was OK and the user decided to UPDATE a Note object
+            val noteId = data!!.getIntExtra(AddEditNoteActivity.EXTRA_ID,-1) // retrieve the note's ID
+
+            if(noteId == -1) { // something went wrong
+                Toast.makeText(this,"Note couldn't be updated",Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Get the data from the Intent Extras
+            val title = data.getStringExtra(AddEditNoteActivity.EXTRA_TITLE)
+            val description = data.getStringExtra(AddEditNoteActivity.EXTRA_DESCRIPTION)
+            val priority = data.getIntExtra(AddEditNoteActivity.EXTRA_PRIORITY, 1)
+
+            val note = Note(title!!,description!!,priority)
+            note.id = noteId // set the note's primary key (ID) so that Room can identify which note to update
+            noteViewModel.update(note) // update the note object with the noteId
+
+            Toast.makeText(this,"Note updated",Toast.LENGTH_SHORT).show()
+        } else { // Something went wrong e.g. when the user used the back button to leave the AddEditNoteActivity
             Toast.makeText(this, "Note not added", Toast.LENGTH_SHORT).show()
         }
     }

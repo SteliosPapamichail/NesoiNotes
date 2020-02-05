@@ -9,11 +9,21 @@ import com.nesoinode.notes.R
 
 class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
     private var notes:List<Note> = ArrayList()
+    private var listener: OnItemClickListener? = null
 
-    class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        public var textViewTitle:TextView = itemView.findViewById(R.id.text_view_title)
-        public var textViewDescription:TextView = itemView.findViewById(R.id.text_view_description)
-        public var textViewPriority:TextView = itemView.findViewById(R.id.text_view_priority)
+    inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var textViewTitle:TextView = itemView.findViewById(R.id.text_view_title)
+        var textViewDescription:TextView = itemView.findViewById(R.id.text_view_description)
+        var textViewPriority:TextView = itemView.findViewById(R.id.text_view_priority)
+        // Set each NoteHolder's onClickListener to use the one specified using the OnItemClickListener interface
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if(listener != null &&  position != RecyclerView.NO_POSITION) { // NO_POSITION == -1
+                    listener!!.onItemClick(notes[position])
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteHolder {
@@ -33,7 +43,7 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
      * and notifies the RecyclerView that the data has changed
      * @param notes A List of new Note data
      */
-    public fun setNotes(notes:List<Note>) {
+    fun setNotes(notes:List<Note>) {
         this.notes = notes
         notifyDataSetChanged()
     }
@@ -43,7 +53,7 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
      * @param position The position from which the object
      * will be retrieved
      */
-    public fun getNoteAt(position: Int) : Note {
+    fun getNoteAt(position: Int) : Note {
         return notes[position]
     }
 
@@ -51,4 +61,11 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
         return notes.size
     }
 
+    interface OnItemClickListener {
+        fun onItemClick(note:Note)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.listener = listener
+    }
 }

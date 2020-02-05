@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <!-- parentActivityName is responsible for creating the back button on the AddNoteActivity and handling the event -->
-        <activity android:name=".view.AddNoteActivity" android:parentActivityName=".view.MainActivity"/>
+        <activity android:name=".view.AddEditNoteActivity" android:parentActivityName=".view.MainActivity"/>
         <activity android:name=".view.MainActivity" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
