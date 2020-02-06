@@ -2,15 +2,20 @@ package com.nesoinode.notes.view
 
 import android.app.Activity
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.NumberPicker
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.nesoinode.notes.R
 import kotlinx.android.synthetic.main.activity_add_note.*
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 
 class AddEditNoteActivity : AppCompatActivity() {
     private lateinit var titleEditText: EditText
@@ -18,10 +23,11 @@ class AddEditNoteActivity : AppCompatActivity() {
     private lateinit var priorityPicker: NumberPicker
 
     companion object { // static key constants for intent extras
-        public const val EXTRA_TITLE = "com.nesoinode.notes.EXTRA_TITLE"
-        public const val EXTRA_DESCRIPTION = "com.nesoinode.notes.EXTRA_DESCRIPTION"
-        public const val EXTRA_PRIORITY = "com.nesoinode.notes.EXTRA_PRIORITY"
-        public const val EXTRA_ID = "com.nesoinode.notes.EXTRA_ID"
+        const val EXTRA_TITLE = "com.nesoinode.notes.EXTRA_TITLE"
+        const val EXTRA_DESCRIPTION = "com.nesoinode.notes.EXTRA_DESCRIPTION"
+        const val EXTRA_PRIORITY = "com.nesoinode.notes.EXTRA_PRIORITY"
+        const val EXTRA_ID = "com.nesoinode.notes.EXTRA_ID"
+        const val EXTRA_DATE_ADDED = "com.nesoinode.notes.EXTRA_DATE_ADDED"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +77,12 @@ class AddEditNoteActivity : AppCompatActivity() {
         val title = titleEditText.text.toString()
         val description = descriptionEditText.text.toString()
         val priority = priorityPicker.value
+        // Get the current date using java.time
+        val instant = Instant.now() // current moment in UTC
+        val zoneId: ZoneId = ZoneId.of("Europe/Athens") // zoneId for Athens
+        val zdt: ZonedDateTime = ZonedDateTime.ofInstant(instant, zoneId) // get the date & time based on a specific zone
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd\nMMM") // a date time formatter
+        val dateAdded = zdt.format(formatter).toString() // the final formatted date
 
         // Check if the input is valid
         if(title.trim().isEmpty() || description.trim().isEmpty()) {
@@ -83,6 +95,7 @@ class AddEditNoteActivity : AppCompatActivity() {
         data.putExtra(EXTRA_TITLE,title)
         data.putExtra(EXTRA_DESCRIPTION,description)
         data.putExtra(EXTRA_PRIORITY,priority)
+        data.putExtra(EXTRA_DATE_ADDED,dateAdded)
 
         val id = intent.getIntExtra(EXTRA_ID,-1) // retrieve the id extra (if there is one)
         if(id != -1) { // if it's not -1 then we've specified an id value explicitly and we want to put it as an extra

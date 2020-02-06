@@ -5,8 +5,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -36,6 +40,9 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, ADD_NOTE_REQUEST)
         }
 
+        val noDataImgView:ImageView = findViewById(R.id.noDataImageView)
+        val noDataTxtView:TextView = findViewById(R.id.noDataTextView)
+
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.setHasFixedSize(true)
@@ -49,6 +56,15 @@ class MainActivity : AppCompatActivity() {
         noteViewModel.getAllNotes()
             .observe(this, // set the lifecycle owner & the observer for the LiveData returned by the NoteViewModel class
                 Observer<List<Note>> { notes ->
+                    if(notes.isEmpty() && !noDataImgView.isVisible && !noDataTxtView.isVisible) {
+                        // Show an appropriate message
+                        noDataImgView.visibility = View.VISIBLE
+                        noDataTxtView.visibility = View.VISIBLE
+                    } else {
+                        // disable the message
+                        noDataImgView.visibility = View.GONE
+                        noDataTxtView.visibility = View.GONE
+                    }
                     // Update the RecyclerView
                     adapter.submitList(notes)
                 })
@@ -95,8 +111,9 @@ class MainActivity : AppCompatActivity() {
             val title = data!!.getStringExtra(AddEditNoteActivity.EXTRA_TITLE)
             val description = data.getStringExtra(AddEditNoteActivity.EXTRA_DESCRIPTION)
             val priority = data.getIntExtra(AddEditNoteActivity.EXTRA_PRIORITY, 1)
+            val dateAdded = data.getStringExtra(AddEditNoteActivity.EXTRA_DATE_ADDED)
 
-            val note = Note(title!!, description!!, priority) // create the new Note object using the data
+            val note = Note(title!!, description!!, priority,dateAdded!!) // create the new Note object using the data
             noteViewModel.insert(note) // insert the object to the database
             Toast.makeText(this, "Note added successfully", Toast.LENGTH_SHORT).show()
         } else if (requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_OK) { // result code was OK and the user decided to UPDATE a Note object
@@ -111,8 +128,9 @@ class MainActivity : AppCompatActivity() {
             val title = data.getStringExtra(AddEditNoteActivity.EXTRA_TITLE)
             val description = data.getStringExtra(AddEditNoteActivity.EXTRA_DESCRIPTION)
             val priority = data.getIntExtra(AddEditNoteActivity.EXTRA_PRIORITY, 1)
+            val dateAdded = data.getStringExtra(AddEditNoteActivity.EXTRA_DATE_ADDED)
 
-            val note = Note(title!!,description!!,priority)
+            val note = Note(title!!,description!!,priority,dateAdded!!)
             note.id = noteId // set the note's primary key (ID) so that Room can identify which note to update
             noteViewModel.update(note) // update the note object with the noteId
 

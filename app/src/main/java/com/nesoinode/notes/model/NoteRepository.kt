@@ -20,23 +20,23 @@ class NoteRepository(application: Application) {
         are the API that the repository class exposes to the rest of the app.
      */
 
-    public fun insert(note:Note) {
+    fun insert(note:Note) {
         InsertNoteAsync(noteDao).execute(note)
     }
 
-    public fun update(note: Note) {
+    fun update(note: Note) {
         UpdateNoteAsync(noteDao).execute(note)
     }
 
-    public fun delete(note: Note) {
+    fun delete(note: Note) {
         DeleteNoteAsync(noteDao).execute(note)
     }
 
-    public fun deleteAllNotes() {
+    fun deleteAllNotes() {
         DeleteAllNotesAsync(noteDao).execute()
     }
 
-    public fun getAllNotes() : LiveData<List<Note>> {return allNotes}
+    fun getAllNotes() : LiveData<List<Note>> {return allNotes}
 
     companion object {
         private class InsertNoteAsync(private val noteDao: NoteDao) : AsyncTask<Note,Void,Void>() {

@@ -24,7 +24,7 @@ class NoteAdapter :
 
                 override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
                     return oldItem.title == newItem.title && oldItem.description == newItem.description
-                            && oldItem.priority == newItem.priority
+                            && oldItem.priority == newItem.priority && oldItem.dateAdded == newItem.dateAdded
                 }
             }
     }
@@ -35,6 +35,7 @@ class NoteAdapter :
         var textViewTitle:TextView = itemView.findViewById(R.id.text_view_title)
         var textViewDescription:TextView = itemView.findViewById(R.id.text_view_description)
         var textViewPriority:TextView = itemView.findViewById(R.id.text_view_priority)
+        var textViewDateAdded:TextView = itemView.findViewById(R.id.textView_date_added)
         // Set each NoteHolder's onClickListener to use the one specified using the OnItemClickListener interface
         init {
             itemView.setOnClickListener {
@@ -56,6 +57,7 @@ class NoteAdapter :
         holder.textViewTitle.text = currentNote.title
         holder.textViewDescription.text = currentNote.description
         holder.textViewPriority.text = currentNote.priority.toString()
+        holder.textViewDateAdded.text = currentNote.dateAdded
     }
 
     /**

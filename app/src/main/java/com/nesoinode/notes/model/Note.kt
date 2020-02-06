@@ -7,7 +7,8 @@ import androidx.room.PrimaryKey
 data class Note(
     var title: String,
     var description: String,
-    var priority: Int
+    var priority: Int,
+    var dateAdded:String
 ) {
     // Automatically generate a unique incremental key for each instance of this entity
     @PrimaryKey(autoGenerate = true)
