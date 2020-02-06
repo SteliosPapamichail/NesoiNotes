@@ -4,11 +4,31 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.nesoinode.notes.R
 
-class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
-    private var notes:List<Note> = ArrayList()
+class NoteAdapter :
+    ListAdapter<Note, NoteAdapter.NoteHolder>(DIFF_CALLBACK) {
+
+    // Defining the DIFF logic in this companion object that will be used by the super class to
+    // handle differences between old and new data after changes have been made to the model
+    companion object {
+        @JvmStatic
+        private val DIFF_CALLBACK : DiffUtil.ItemCallback<Note> =
+            object:DiffUtil.ItemCallback<Note>() {
+                override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
+                    return oldItem.id == newItem.id
+                }
+
+                override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
+                    return oldItem.title == newItem.title && oldItem.description == newItem.description
+                            && oldItem.priority == newItem.priority
+                }
+            }
+    }
+
     private var listener: OnItemClickListener? = null
 
     inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -20,7 +40,7 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
             itemView.setOnClickListener {
                 val position = adapterPosition
                 if(listener != null &&  position != RecyclerView.NO_POSITION) { // NO_POSITION == -1
-                    listener!!.onItemClick(notes[position])
+                    listener!!.onItemClick(getItem(position))
                 }
             }
         }
@@ -32,20 +52,10 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
     }
 
     override fun onBindViewHolder(holder: NoteHolder, position: Int) {
-        val currentNote:Note = notes[position]
+        val currentNote:Note = getItem(position)
         holder.textViewTitle.text = currentNote.title
         holder.textViewDescription.text = currentNote.description
         holder.textViewPriority.text = currentNote.priority.toString()
-    }
-
-    /**
-     * Passes the new data to the adapter
-     * and notifies the RecyclerView that the data has changed
-     * @param notes A List of new Note data
-     */
-    fun setNotes(notes:List<Note>) {
-        this.notes = notes
-        notifyDataSetChanged()
     }
 
     /**
@@ -54,11 +64,7 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteHolder>() {
      * will be retrieved
      */
     fun getNoteAt(position: Int) : Note {
-        return notes[position]
-    }
-
-    override fun getItemCount(): Int {
-        return notes.size
+        return getItem(position)
     }
 
     interface OnItemClickListener {

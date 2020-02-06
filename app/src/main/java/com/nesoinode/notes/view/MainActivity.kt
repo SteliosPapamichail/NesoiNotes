@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             .observe(this, // set the lifecycle owner & the observer for the LiveData returned by the NoteViewModel class
                 Observer<List<Note>> { notes ->
                     // Update the RecyclerView
-                    adapter.setNotes(notes)
+                    adapter.submitList(notes)
                 })
 
         // Implement touch events on the RecyclerView such as swipe-to-delete etc.
